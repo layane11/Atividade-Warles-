@@ -1,0 +1,74 @@
+#include <stdio.h>
+#include <string.h>
+
+#define MAX_ALUNOS 35
+
+struct Aluno {
+    char nome[50];
+    int idade;
+    char curso[50];
+};
+
+int main() {
+    struct Aluno alunos[MAX_ALUNOS] = {
+        {"Ana Souza", 18, "Informática"},
+        {"Bruno Lima", 19, "Administração"},
+        {"Carla Mendes", 20, "Enfermagem"},
+        {"Daniel Costa", 21, "Engenharia"},
+        {"Eduarda Silva", 22, "Direito"},
+        {"Felipe Rocha", 18, "Matemática"},
+        {"Gabriela Alves", 19, "Biologia"},
+        {"Henrique Santos", 23, "Medicina"},
+        {"Isabela Moraes", 20, "Arquitetura"},
+        {"João Pereira", 21, "Contabilidade"}
+    };
+
+    int total = 10;
+    int i;
+
+    while (total < MAX_ALUNOS) {
+        char opcao;
+
+        printf("\nDeseja cadastrar um novo aluno? (s/n): ");
+        scanf(" %c", &opcao);
+        getchar();
+
+        if (opcao == 'n' || opcao == 'N') {
+            break;
+        }
+
+        printf("Digite o nome do aluno: ");
+        fgets(alunos[total].nome, 50, stdin);
+        alunos[total].nome[strcspn(alunos[total].nome, "\n")] = '\0';
+
+        do {
+            printf("Digite a idade do aluno (mínimo 18): ");
+            scanf("%d", &alunos[total].idade);
+            getchar();
+
+            if (alunos[total].idade < 18) {
+                printf("Idade inválida. O aluno deve ter no mínimo 18 anos.\n");
+            }
+
+        } while (alunos[total].idade < 18);
+
+        printf("Digite o curso do aluno: ");
+        fgets(alunos[total].curso, 50, stdin);
+        alunos[total].curso[strcspn(alunos[total].curso, "\n")] = '\0';
+
+        total++;
+
+        printf("\n%-3s %-20s %-10s %-20s\n", "N°", "Nome", "Idade", "Curso");
+        printf("---------------------------------------------------------------\n");
+
+        for (i = 0; i < total; i++) {
+            printf("%-3d %-20s %-10d %-20s\n",
+                   i + 1,
+                   alunos[i].nome,
+                   alunos[i].idade,
+                   alunos[i].curso);
+        }
+    }
+
+    return 0;
+}
