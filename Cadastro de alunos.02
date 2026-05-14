@@ -1,0 +1,388 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX 100
+
+// ==================== ESTRUTURAS ====================
+
+struct Pessoa {
+    int id;
+    char nome[100];
+    int idade;
+    char info[100];
+};
+
+// ==================== BANCOS ====================
+
+struct Pessoa alunos[MAX];
+struct Pessoa pacientes[MAX];
+struct Pessoa funcionarios[MAX];
+struct Pessoa professores[MAX];
+
+int totalAlunos = 0;
+int totalPacientes = 0;
+int totalFuncionarios = 0;
+int totalProfessores = 0;
+
+// ==================== SALVAR ====================
+
+void salvarDados(char arquivo[], struct Pessoa vetor[], int total) {
+
+    FILE *file = fopen(arquivo, "wb");
+
+    if(file == NULL) {
+        printf("\nErro ao salvar arquivo!\n");
+        return;
+    }
+
+    fwrite(&total, sizeof(int), 1, file);
+    fwrite(vetor, sizeof(struct Pessoa), total, file);
+
+    fclose(file);
+}
+
+// ==================== CARREGAR ====================
+
+int carregarDados(char arquivo[], struct Pessoa vetor[]) {
+
+    FILE *file = fopen(arquivo, "rb");
+
+    int total = 0;
+
+    if(file == NULL) {
+        return 0;
+    }
+
+    fread(&total, sizeof(int), 1, file);
+    fread(vetor, sizeof(struct Pessoa), total, file);
+
+    fclose(file);
+
+    return total;
+}
+
+// ==================== CADASTRAR ====================
+
+void cadastrar(
+    struct Pessoa vetor[],
+    int *total,
+    char tipo[],
+    char arquivo[]
+) {
+
+    if(*total >= MAX) {
+        printf("\nLimite atingido!\n");
+        return;
+    }
+
+    vetor[*total].id = *total + 1;
+
+    printf("\n===== CADASTRAR %s =====\n", tipo);
+
+    getchar();
+
+    printf("Nome: ");
+    fgets(vetor[*total].nome, 100, stdin);
+    vetor[*total].nome[strcspn(vetor[*total].nome, "\n")] = '\0';
+
+    printf("Idade: ");
+    scanf("%d", &vetor[*total].idade);
+
+    getchar();
+
+    printf("Informacao extra: ");
+    fgets(vetor[*total].info, 100, stdin);
+    vetor[*total].info[strcspn(vetor[*total].info, "\n")] = '\0';
+
+    (*total)++;
+
+    salvarDados(arquivo, vetor, *total);
+
+    printf("\n%s cadastrado com sucesso!\n", tipo);
+}
+
+// ==================== LISTAR ====================
+
+void listar(
+    struct Pessoa vetor[],
+    int total,
+    char tipo[]
+) {
+
+    int i;
+
+    if(total == 0) {
+        printf("\nNenhum cadastro encontrado.\n");
+        return;
+    }
+
+    printf("\n========== LISTA DE %s ==========\n", tipo);
+
+    printf("%-5s %-25s %-10s %-25s\n",
+           "ID", "NOME", "IDADE", "INFO");
+
+    printf("-------------------------------------------------------------\n");
+
+    for(i = 0; i < total; i++) {
+
+        printf("%-5d %-25s %-10d %-25s\n",
+               vetor[i].id,
+               vetor[i].nome,
+               vetor[i].idade,
+               vetor[i].info);
+    }
+}
+
+// ==================== LOCALIZAR ====================
+
+void localizar(
+    struct Pessoa vetor[],
+    int total
+) {
+
+    char busca[100];
+    int i;
+    int encontrado = 0;
+
+    getchar();
+
+    printf("\nDigite o nome: ");
+    fgets(busca, 100, stdin);
+    busca[strcspn(busca, "\n")] = '\0';
+
+    for(i = 0; i < total; i++) {
+
+        if(strcmp(busca, vetor[i].nome) == 0) {
+
+            printf("\n===== ENCONTRADO =====\n");
+
+            printf("ID: %d\n", vetor[i].id);
+            printf("Nome: %s\n", vetor[i].nome);
+            printf("Idade: %d\n", vetor[i].idade);
+            printf("Info: %s\n", vetor[i].info);
+
+            encontrado = 1;
+        }
+    }
+
+    if(!encontrado) {
+        printf("\nCadastro nao encontrado.\n");
+    }
+}
+
+// ==================== EDITAR ====================
+
+void editar(
+    struct Pessoa vetor[],
+    int total,
+    char arquivo[]
+) {
+
+    int id;
+    int i;
+
+    printf("\nDigite o ID: ");
+    scanf("%d", &id);
+
+    for(i = 0; i < total; i++) {
+
+        if(vetor[i].id == id) {
+
+            getchar();
+
+            printf("Novo nome: ");
+            fgets(vetor[i].nome, 100, stdin);
+            vetor[i].nome[strcspn(vetor[i].nome, "\n")] = '\0';
+
+            printf("Nova idade: ");
+            scanf("%d", &vetor[i].idade);
+
+            getchar();
+
+            printf("Nova informacao: ");
+            fgets(vetor[i].info, 100, stdin);
+            vetor[i].info[strcspn(vetor[i].info, "\n")] = '\0';
+
+            salvarDados(arquivo, vetor, total);
+
+            printf("\nCadastro atualizado!\n");
+
+            return;
+        }
+    }
+
+    printf("\nID nao encontrado.\n");
+}
+
+// ==================== EXCLUIR ====================
+
+void excluir(
+    struct Pessoa vetor[],
+    int *total,
+    char arquivo[]
+) {
+
+    int id;
+    int i, j;
+
+    printf("\nDigite o ID: ");
+    scanf("%d", &id);
+
+    for(i = 0; i < *total; i++) {
+
+        if(vetor[i].id == id) {
+
+            for(j = i; j < *total - 1; j++) {
+                vetor[j] = vetor[j + 1];
+            }
+
+            (*total)--;
+
+            for(j = 0; j < *total; j++) {
+                vetor[j].id = j + 1;
+            }
+
+            salvarDados(arquivo, vetor, *total);
+
+            printf("\nCadastro removido!\n");
+
+            return;
+        }
+    }
+
+    printf("\nID nao encontrado.\n");
+}
+
+// ==================== MENU DOS BANCOS ====================
+
+void menuBanco(
+    struct Pessoa vetor[],
+    int *total,
+    char tipo[],
+    char arquivo[]
+) {
+
+    int opcao;
+
+    do {
+
+        printf("\n========= BANCO DE %s =========\n", tipo);
+
+        printf("1 - Cadastrar\n");
+        printf("2 - Listar\n");
+        printf("3 - Localizar\n");
+        printf("4 - Editar\n");
+        printf("5 - Excluir\n");
+        printf("0 - Voltar\n");
+
+        printf("\nEscolha: ");
+        scanf("%d", &opcao);
+
+        switch(opcao) {
+
+            case 1:
+                cadastrar(vetor, total, tipo, arquivo);
+                break;
+
+            case 2:
+                listar(vetor, *total, tipo);
+                break;
+
+            case 3:
+                localizar(vetor, *total);
+                break;
+
+            case 4:
+                editar(vetor, *total, arquivo);
+                break;
+
+            case 5:
+                excluir(vetor, total, arquivo);
+                break;
+
+            case 0:
+                break;
+
+            default:
+                printf("\nOpcao invalida!\n");
+        }
+
+    } while(opcao != 0);
+}
+
+// ==================== MAIN ====================
+
+int main() {
+
+    int opcao;
+
+    // CARREGAR DADOS
+    totalAlunos = carregarDados("alunos.dat", alunos);
+    totalPacientes = carregarDados("pacientes.dat", pacientes);
+    totalFuncionarios = carregarDados("funcionarios.dat", funcionarios);
+    totalProfessores = carregarDados("professores.dat", professores);
+
+    do {
+
+        printf("\n=========== SISTEMA CENTRAL ===========\n");
+
+        printf("1 - Banco de Alunos\n");
+        printf("2 - Banco de Pacientes\n");
+        printf("3 - Banco de Funcionarios\n");
+        printf("4 - Banco de Professores\n");
+        printf("0 - Sair\n");
+
+        printf("\nEscolha: ");
+        scanf("%d", &opcao);
+
+        switch(opcao) {
+
+            case 1:
+                menuBanco(
+                    alunos,
+                    &totalAlunos,
+                    "ALUNOS",
+                    "alunos.dat"
+                );
+                break;
+
+            case 2:
+                menuBanco(
+                    pacientes,
+                    &totalPacientes,
+                    "PACIENTES",
+                    "pacientes.dat"
+                );
+                break;
+
+            case 3:
+                menuBanco(
+                    funcionarios,
+                    &totalFuncionarios,
+                    "FUNCIONARIOS",
+                    "funcionarios.dat"
+                );
+                break;
+
+            case 4:
+                menuBanco(
+                    professores,
+                    &totalProfessores,
+                    "PROFESSORES",
+                    "professores.dat"
+                );
+                break;
+
+            case 0:
+                printf("\nSistema encerrado.\n");
+                break;
+
+            default:
+                printf("\nOpcao invalida!\n");
+        }
+
+    } while(opcao != 0);
+
+    return 0;
+}
