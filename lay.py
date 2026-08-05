@@ -1,0 +1,76 @@
+import mysql.connector
+import tkinter as tk
+from tkinter import messagebox
+
+conexao = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="L@y2026",
+    database="comercio"
+)
+
+cursor = conexao.cursor()
+
+def cadastrar():
+    nome = entrada_nome.get()
+    preco = entrada_preco.get()
+    quantidade = entrada_quantidade.get()
+
+    sql = "INSERT INTO produtos(nome, preco, quantidade) VALUES(%s, %s, %s)"
+    valores = (nome, preco, quantidade)
+
+    cursor.execute(sql, valores)
+    conexao.commit()
+
+    messagebox.showinfo("Sucesso", "Produto cadastrado!")
+
+    entrada_nome.delete(0, tk.END)
+    entrada_preco.delete(0, tk.END)
+    entrada_quantidade.delete(0, tk.END)
+
+def listar():
+    cursor.execute("SELECT * FROM produtos")
+    produtos = cursor.fetchall()
+
+    janela_lista = tk.Toplevel(janela)
+    janela_lista.title("Produtos")
+
+    for produto in produtos:
+        texto = f"ID: {produto[0]} | {produto[1]} | R$ {produto[2]} | Estoque: {produto[3]}"
+        tk.Label(janela_lista, text=texto).pack(anchor="w")
+
+janela = tk.Tk()
+janela.title("Cadastro de Produtos")
+janela.geometry("350x250")
+
+tk.Label(janela, text="Nome").pack()
+
+entrada_nome = tk.Entry(janela, width=35)
+entrada_nome.pack()
+
+tk.Label(janela, text="Preço").pack()
+
+entrada_preco = tk.Entry(janela, width=35)
+entrada_preco.pack()
+
+tk.Label(janela, text="Quantidade").pack()
+
+entrada_quantidade = tk.Entry(janela, width=35)
+entrada_quantidade.pack()
+
+tk.Button(
+    janela,
+    text="Cadastrar Produto",
+    command=cadastrar
+).pack(pady=10)
+
+tk.Button(
+    janela,
+    text="Listar Produtos",
+    command=listar
+).pack()
+
+janela.mainloop()
+
+cursor.close()
+conexao.close()
